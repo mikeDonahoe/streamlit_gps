@@ -119,7 +119,7 @@ def saveKML(_rssiDict, fileName):
         satPnt.description = "{}".format(satDescription)
 
         if satData.getNavMode() != 3 :
-            satPnt.iconstyle.icon.hef = "http://maps.google.com/mapfiles/kml/pal3/icon47.png"
+            satPnt.iconstyle.icon.href = "http://maps.google.com/mapfiles/kml/shapes/caution.png"
         elif(snrAverage >= 30):
             satPnt.iconstyle.icon.href = 'http://maps.google.com/mapfiles/kml/paddle/blu-square-lv.png'
         elif(snrAverage > 20 and snrAverage <= 29):
