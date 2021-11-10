@@ -65,7 +65,6 @@ minLat = sys.maxsize
 maxLat = -sys.maxsize
 minLon = sys.maxsize
 maxLon = -sys.maxsize
-prevMsgId = ""
 time = 0
 hdop = 0
 vdop = 0
@@ -107,10 +106,10 @@ def saveKML(_rssiDict, fileName):
             for satData in _rssiDict[key][2]:
                 snr += satData.getSNR()
                 if(not first):
-                    satDescription += "<li>SatCount: {} </li> <li>NavMode: {}</li><li>PDOP: {}</li> <li>HDOP: {}</li><li>VDOP: {}</li></ul>".format(satCount,satData.getNavMode(),satData.getPDOP(), satData.getHDOP(), satData.getVDOP())
+                    satDescription += f"<li>SatCount: {satCount} </li> <li>NavMode: {satData.getNavMode()}</li><li>PDOP: {satData.getPDOP()}</li> <li>HDOP: {satData.getHDOP()}</li><li>VDOP: {satData.getVDOP()}</li></ul>"
                     first = 1
 
-                satDescription += "<ul><li><strong>Satellite ID: {}</strong></li> <li>Elevation: {}</li> <li>Azimuth {}</li> <li>SNR: {}</li>  </ul>".format(satData.getId(), satData.getElevation(), satData.getAzimuth(), satData.getSNR())
+                satDescription += f"<ul><li><strong>Satellite ID: {satData.getId()}</strong></li> <li>Elevation: {satData.getElevation()}</li> <li>Azimuth {satData.getAzimuth()}</li> <li>SNR: {satData.getSNR()}</li>  </ul>"
             
             snrAverage = snr / satCount
         
@@ -129,7 +128,6 @@ def saveKML(_rssiDict, fileName):
         
     text_downloader(kml.kml(),fileName)
     #kml.save("./temp.kml")
-
 
 def showMap(_rssiDict):
     df = pd.DataFrame.from_dict(_rssiDict, columns=['lon', 'lat', 'sat'], orient='index')
@@ -171,14 +169,15 @@ def get_table_download_link(df):
     href = f'<a href="data:file/csv;base64,{b64}">Download csv file</a>'
 
 if submit:
+    nmeaError = False
     if nmeafile is not None:
         st.write("File submitted")
         file_details = {"FileName":nmeafile.name,"FileType":nmeafile.type,"FileSize":nmeafile.size}
         st.write(file_details)
-        nmr = NMEAReader(nmeafile, nmeaonly=True)
+        nmr = NMEAReader(nmeafile, nmeaonly=False)
 
-        for (raw_data, msg) in nmr: 
-            try:
+        try:
+            for (raw_data, msg) in nmr: 
                 #use to debug bad nmea line
                 #print(line)
                 line += 1
@@ -246,22 +245,23 @@ if submit:
                             addPos(msg.lat,msg.lon, time, rssiList)
                     
                     rssiList.clear()
-                prevMsgId = msg.msgID
 
 
-            except (nme.NMEAMessageError, nme.NMEATypeError, nme.NMEAParseError) as err:
-                        print(f"Something went wrong {err}")
-                        continue
-        fnameSplit = str.split(nmeafile.name,'.')
-        if len(fnameSplit) >=1:
-            kmlFileName = "{}.{}".format(fnameSplit[0],"kml")
-            
-        bbox = maxLon,maxLat,minLon,minLat
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        saveKML(rssiDict, kmlFileName)
-        showMap(rssiDict)
-       
+        except (nme.NMEAStreamError, nme.NMEAMessageError, nme.NMEATypeError, nme.NMEAParseError) as err:
+                st.write(f"Error: Unable to parse NMEA {err}")
+                nmeaError = True
+
+        if not nmeaError:             
+            fnameSplit = str.split(nmeafile.name,'.')
+            if len(fnameSplit) >=1:
+                kmlFileName = f"{fnameSplit[0]}.kml"
+                
+            bbox = maxLon,maxLat,minLon,minLat
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            saveKML(rssiDict, kmlFileName)
+            showMap(rssiDict)
+        
         
     else:
         st.write("No file was uploaded!")
