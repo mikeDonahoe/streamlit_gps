@@ -7,6 +7,9 @@ import simplekml
 import asyncio
 import base64
 import io
+import numpy as np
+import pandas as pd
+import pydeck as pdk
 
 class SatData:
     def __init__(self, id, elevation, azimuth, snr):
@@ -68,6 +71,7 @@ hdop = 0
 vdop = 0
 pdop = 0
 navmode = 0
+kmlFileName = "output.kml"
 
 def get_image_download_link(img):
 	"""Generates a link allowing the PIL image to be downloaded
@@ -80,15 +84,15 @@ def get_image_download_link(img):
 	href = f'<a href="data:file/jpg;base64,{img_str}">Download result</a>'
 	return href
 
-def text_downloader(raw_text):
+def text_downloader(raw_text, fileName):
 	b64 = base64.b64encode(raw_text.encode()).decode()
-	new_filename = "{}.kml".format(random.randint(0,1999999))
+
 	st.markdown("#### Download File ###")
-	href = f'<a href="data:file/txt;base64,{b64}" download="{new_filename}">{new_filename}</a>'
+	href = f'<a href="data:file/txt;base64,{b64}" download="{fileName}">{fileName}</a>'
 	st.markdown(href,unsafe_allow_html=True)
 
 #http://kml4earth.appspot.com/icons.html
-def saveKML(_rssiDict):
+def saveKML(_rssiDict, fileName):
     kml = simplekml.Kml()
     
     for key, values in _rssiDict.items():
@@ -123,9 +127,29 @@ def saveKML(_rssiDict):
         else:
             satPnt.iconstyle.icon.href = 'http://maps.google.com/mapfiles/kml/paddle/red-square-lv.png'
         
-    text_downloader(kml.kml())
+    text_downloader(kml.kml(),fileName)
     #kml.save("./temp.kml")
 
+
+def showMap(_rssiDict):
+    df = pd.DataFrame.from_dict(_rssiDict, columns=['lon', 'lat', 'sat'], orient='index')
+
+    view = pdk.data_utils.compute_view(df[['lon', 'lat']])
+    view.zoom = 12
+    st.write(pdk.Deck(
+        map_style="mapbox://styles/mapbox/light-v9",
+        initial_view_state=view,
+        layers=[
+            pdk.Layer(
+                "ScatterplotLayer",
+                data=df,
+                get_position=["lon", "lat"],
+                auto_highlight=True,
+                get_radius=10,          # Radius is given in meters
+                get_fill_color=[180, 0, 200, 140],  # Set an RGBA value for fill
+            ),
+        ]
+    ))
 
 st.title("GPS NMEA to KML")
 st.write("Provide a NMEA GPS log for processing")
@@ -228,11 +252,15 @@ if submit:
             except (nme.NMEAMessageError, nme.NMEATypeError, nme.NMEAParseError) as err:
                         print(f"Something went wrong {err}")
                         continue
-        
+        fnameSplit = str.split(nmeafile.name,'.')
+        if len(fnameSplit) >=1:
+            kmlFileName = "{}.{}".format(fnameSplit[0],"kml")
+            
         bbox = maxLon,maxLat,minLon,minLat
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
-        saveKML(rssiDict, )
+        saveKML(rssiDict, kmlFileName)
+        showMap(rssiDict)
        
         
     else:
