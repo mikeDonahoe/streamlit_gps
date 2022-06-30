@@ -99,14 +99,15 @@ def saveKML(_rssiDict, fileName):
         snrAverage = 0
         satDescription = "<strong> {} </strong></br>".format(key)
         satCount = len(_rssiDict[key][2])
-
+        gpsMode = 0
         #list of satData
         if(satCount > 0):
             first = 0
             for satData in _rssiDict[key][2]:
                 snr += satData.getSNR()
                 if(not first):
-                    satDescription += f"<li>SatCount: {satCount} </li> <li>NavMode: {satData.getNavMode()}</li><li>PDOP: {satData.getPDOP()}</li> <li>HDOP: {satData.getHDOP()}</li><li>VDOP: {satData.getVDOP()}</li></ul>"
+                    satDescription += "<li>SatCount: {} </li> <li>NavMode: {}</li><li>PDOP: {}</li> <li>HDOP: {}</li><li>VDOP: {}</li></ul>".format(satCount,satData.getNavMode(),satData.getPDOP(), satData.getHDOP(), satData.getVDOP())
+                    gpsMode = satData.getNavMode()
                     first = 1
 
                 satDescription += f"<ul><li><strong>Satellite ID: {satData.getId()}</strong></li> <li>Elevation: {satData.getElevation()}</li> <li>Azimuth {satData.getAzimuth()}</li> <li>SNR: {satData.getSNR()}</li>  </ul>"
@@ -117,7 +118,7 @@ def saveKML(_rssiDict, fileName):
         satPnt = kml.newpoint(name=str(snrAverage), coords=[(_rssiDict[key][0],_rssiDict[key][1])])
         satPnt.description = "{}".format(satDescription)
 
-        if satData.getNavMode() != 3 :
+        if gpsMode != 3 :
             satPnt.iconstyle.icon.href = "http://maps.google.com/mapfiles/kml/shapes/caution.png"
         elif(snrAverage >= 30):
             satPnt.iconstyle.icon.href = 'http://maps.google.com/mapfiles/kml/paddle/blu-square-lv.png'
