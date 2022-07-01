@@ -179,73 +179,77 @@ if submit:
 
         try:
             for (raw_data, msg) in nmr: 
-                #use to debug bad nmea line
-                #print(line)
-                line += 1
-                #print(msg)
-                if(msg.msgID == "GSA"):
-                    if( hasattr(msg, 'PDOP')):
-                        pdop = msg.PDOP
-                    if( hasattr(msg, 'HDOP')):
-                        hdop = msg.HDOP
-                    if( hasattr(msg, 'VDOP')):
-                        vdop = msg.VDOP
-                    if( hasattr(msg,'navMode')):
-                        navmode = msg.navMode
-
-                if msg.msgID == "GSV":
-                    #handle sattelite count
-                    if(hasattr(msg, 'svid_01') and msg.svid_01 and msg.cno_01):
-                        satData = SatData(msg.svid_01,msg.elv_01, msg.az_01,msg.cno_01)
-                        satData.setHDOP(hdop)
-                        satData.setVDOP(vdop)
-                        satData.setPDOP(pdop)
-                        satData.setNavMode(navmode)
-                        rssiList.append(satData)
-                    if(hasattr(msg, 'svid_02') and msg.svid_02 and msg.cno_02):
-                        satData = SatData(msg.svid_02,msg.elv_02, msg.az_02,msg.cno_02)
-                        satData.setHDOP(hdop)
-                        satData.setVDOP(vdop)
-                        satData.setPDOP(pdop)
-                        satData.setNavMode(navmode)
-                        rssiList.append(satData)
-                    if( hasattr(msg, 'svid_03') and msg.svid_03 and msg.cno_03):
-                        satData = SatData(msg.svid_03,msg.elv_03, msg.az_01,msg.cno_03)
-                        satData.setHDOP(hdop)
-                        satData.setVDOP(vdop)
-                        satData.setPDOP(pdop)
-                        satData.setNavMode(navmode)
-                        rssiList.append(satData)
-                    if(hasattr(msg, 'svid_04') and msg.svid_04 and msg.cno_04):
-                        satData = SatData(msg.svid_04,msg.elv_04, msg.az_04,msg.cno_04)
-                        satData.setHDOP(hdop)
-                        satData.setVDOP(vdop)
-                        satData.setPDOP(pdop)
-                        satData.setNavMode(navmode)
-                        rssiList.append(satData)
-    
-                elif msg.msgID == "GGA":
-                    if( hasattr(msg, 'time') and msg.time):
-                        time = msg.time
+                if msg:
                     
+                    #use to debug bad nmea line
+                    #print(line)
+                    line += 1
+                    #print(msg)
+                    if(msg.msgID == "GSA"):
+                        if( hasattr(msg, 'PDOP')):
+                            pdop = msg.PDOP
+                        if( hasattr(msg, 'HDOP')):
+                            hdop = msg.HDOP
+                        if( hasattr(msg, 'VDOP')):
+                            vdop = msg.VDOP
+                        if( hasattr(msg,'navMode')):
+                            navmode = msg.navMode
+
+                    if msg.msgID == "GSV":
+                        #handle sattelite count
+                        if(hasattr(msg, 'svid_01') and msg.svid_01 and msg.cno_01):
+                            satData = SatData(msg.svid_01,msg.elv_01, msg.az_01,msg.cno_01)
+                            satData.setHDOP(hdop)
+                            satData.setVDOP(vdop)
+                            satData.setPDOP(pdop)
+                            satData.setNavMode(navmode)
+                            rssiList.append(satData)
+                        if(hasattr(msg, 'svid_02') and msg.svid_02 and msg.cno_02):
+                            satData = SatData(msg.svid_02,msg.elv_02, msg.az_02,msg.cno_02)
+                            satData.setHDOP(hdop)
+                            satData.setVDOP(vdop)
+                            satData.setPDOP(pdop)
+                            satData.setNavMode(navmode)
+                            rssiList.append(satData)
+                        if( hasattr(msg, 'svid_03') and msg.svid_03 and msg.cno_03):
+                            satData = SatData(msg.svid_03,msg.elv_03, msg.az_01,msg.cno_03)
+                            satData.setHDOP(hdop)
+                            satData.setVDOP(vdop)
+                            satData.setPDOP(pdop)
+                            satData.setNavMode(navmode)
+                            rssiList.append(satData)
+                        if(hasattr(msg, 'svid_04') and msg.svid_04 and msg.cno_04):
+                            satData = SatData(msg.svid_04,msg.elv_04, msg.az_04,msg.cno_04)
+                            satData.setHDOP(hdop)
+                            satData.setVDOP(vdop)
+                            satData.setPDOP(pdop)
+                            satData.setNavMode(navmode)
+                            rssiList.append(satData)
+        
+                    elif msg.msgID == "GGA":
+                        if( hasattr(msg, 'time') and msg.time):
+                            time = msg.time
+                        
 
 
-                    if(hasattr(msg, 'lat') and msg.lat):
-                        if(hasattr(msg, 'lon') and msg.lon):
-                            if(msg.lat > maxLat):
-                                maxLat = msg.lat
-                            if(msg.lat < minLat):
-                                minLat = msg.lat
+                        if(hasattr(msg, 'lat') and msg.lat):
+                            if(hasattr(msg, 'lon') and msg.lon):
+                                if(msg.lat > maxLat):
+                                    maxLat = msg.lat
+                                if(msg.lat < minLat):
+                                    minLat = msg.lat
 
-                            if(msg.lon > maxLon):
-                                maxLon = msg.lon
-                            if(msg.lon < minLon):
-                                minLon = msg.lon
-                            
-                    
-                            addPos(msg.lat,msg.lon, time, rssiList)
-                    
-                    rssiList.clear()
+                                if(msg.lon > maxLon):
+                                    maxLon = msg.lon
+                                if(msg.lon < minLon):
+                                    minLon = msg.lon
+                                
+                        
+                                addPos(msg.lat,msg.lon, time, rssiList)
+                        
+                        rssiList.clear()
+                else:
+                    st.write(f"Warning: Unable to parse some lines.  Please check file for errors")
 
 
         except (nme.NMEAStreamError, nme.NMEAMessageError, nme.NMEATypeError, nme.NMEAParseError) as err:
